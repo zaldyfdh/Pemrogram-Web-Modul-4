@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toko Elektronik Cepat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; color: #212529; font-family: system-ui, sans-serif; }
+        .tech-card { background: white; border: 1px solid #e3e6ea; border-radius: 12px; padding: 20px; transition: all 0.2s; }
+        .product-badge { cursor: pointer; border: 1px solid #dee2e6; border-radius: 10px; background: white; transition: 0.2s; }
+        .product-badge:hover { border-color: #0d6efd; background: #f1f7ff; }
+        .product-badge.active { border-color: #0d6efd; background: #e7f1ff; box-shadow: 0 4px 12px rgba(13,110,253,0.1); }
+        .slideshow-box { height: 260px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .slideshow-box img { max-height: 80%; max-width: 80%; object-fit: contain; }
+        .output-box { background: #f4fbf7; border: 1px solid #a3cfbb; border-radius: 8px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container my-4" style="max-width: 850px;">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold m-0 text-dark">Toko Elektronik Cepat</h2>
+            <small class="text-muted" id="jam-transaksi">Memuat waktu...</small>
+        </div>
+    </div>
+
+    <div class="row g-2 mb-4" id="daftar-produk-container"></div>
+
+    <div class="tech-card mb-4">
+        <div class="slideshow-box">
+            <button class="btn btn-sm btn-light border position-absolute start-0 ms-3 shadow-sm" onclick="gantiGambar(-1)">❮</button>
+            <img id="gambar-produk" src="" alt="Produk">
+            <button class="btn btn-sm btn-light border position-absolute end-0 me-3 shadow-sm" onclick="gantiGambar(1)">❯</button>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <h4 id="nama-produk" class="fw-bold m-0">-</h4>
+            <h4 id="harga-produk" class="text-primary fw-bold m-0">-</h4>
+        </div>
+    </div>
+
+    <div class="tech-card">
+        <h5 class="fw-bold mb-3 text-secondary">Form Pemesanan</h5>
+        <div class="row g-2">
+            <div class="col-md-5"><input type="text" id="input-nama" class="form-control" placeholder="Nama Lengkap"></div>
+            <div class="col-md-3"><input type="number" id="input-jumlah" class="form-control" min="1" value="1" placeholder="Jumlah"></div>
+            <div class="col-md-4"><input type="text" id="input-promo" class="form-control" placeholder="Kode Promo (Contoh: DISKON10)"></div>
+            <div class="col-12 mt-3"><button class="btn btn-dark w-100 py-2 fw-bold" onclick="prosesPemesanan()">Pesan Sekarang</button></div>
+        </div>
+        
+        <div id="area-struk" class="p-3 mt-3 output-box"></div>
+    </div>
+
+</div>
+
+<script>
+    const produkData = [
+        { nama: "Laptop ASUS ROG Zephyrus", harga: 24000000, gambar: ["https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=500", "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=500"] },
+        { nama: "Smartphone Samsung S24", harga: 16000000, gambar: ["https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=500", "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500"] },
+        { nama: "Headphone Sony WH", harga: 4500000, gambar: ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500", "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=500"] }
+    ];
+
+    let pIndeks = 0, gIndeks = 0;
+
+    // 1. Jam Dinamis
+    setInterval(() => {
+        document.getElementById('jam-transaksi').innerText = new Date().toLocaleDateString('id-ID', {weekday:'long', year:'numeric', month:'long', day:'numeric'}) + " | " + new Date().toLocaleTimeString('id-ID');
+    }, 1000);
+
+    // 3 & 4. Render Menu Atas & Update Display
+    function renderAplikasi() {
+        const container = document.getElementById('daftar-produk-container');
+        container.innerHTML = produkData.map((p, i) => `
+            <div class="col-md-4">
+                <div class="product-badge p-3 h-100 ${i === pIndeks ? 'active' : ''}" onclick="pilihProduk(${i})">
+                    <div class="fw-bold text-truncate">${p.nama}</div>
+                    <small class="text-primary fw-semibold">Rp ${p.harga.toLocaleString('id-ID')}</small>
+                </div>
+            </div>
+        `).join('');
+
+        const produk = produkData[pIndeks];
+        document.getElementById('nama-produk').innerText = produk.nama;
+        document.getElementById('harga-produk').innerText = `Rp ${produk.harga.toLocaleString('id-ID')}`;
+        document.getElementById('gambar-produk').src = produk.gambar[gIndeks];
+    }
+
+    function pilihProduk(i) { pIndeks = i; gIndeks = 0; renderAplikasi(); }
+    
+    function gantiGambar(arah) {
+        const len = produkData[pIndeks].gambar.length;
+        gIndeks = (gIndeks + arah + len) % len;
+        renderAplikasi();
+    }
+
+    // 5. Logika Pemesanan
+    function prosesPemesanan() {
+        const nama = document.getElementById('input-nama').value.trim();
+        const jumlah = parseInt(document.getElementById('input-jumlah').value);
+        const promo = document.getElementById('input-promo').value.trim().toUpperCase();
+        
+        if (!nama || isNaN(jumlah) || jumlah <= 0) {
+            alert("Nama tidak boleh kosong & jumlah harus lebih dari 0!"); return;
+        }
+
+        const produk = produkData[pIndeks];
+        const subtotal = produk.harga * jumlah;
+        const potongan = (promo === "DISKON10") ? subtotal * 0.1 : 0;
+        const total = subtotal - potongan;
+        const orderId = `INV-${Math.floor(10000 + Math.random() * 90000)}`;
+
+        const area = document.getElementById('area-struk');
+        area.innerHTML = `
+            <h6 class="fw-bold text-success mb-2">🧾 STRUK BELANJA (${orderId})</h6>
+            <div class="row g-1 small text-muted">
+                <div class="col-4">Pemesan:</div><div class="col-8 text-dark fw-medium">${nama}</div>
+                <div class="col-4">Produk:</div><div class="col-8 text-dark">${produk.nama}</div>
+                <div class="col-4">Jumlah:</div><div class="col-8 text-dark">${jumlah} pcs</div>
+                <div class="col-4">Subtotal:</div><div class="col-8 text-dark">Rp ${subtotal.toLocaleString('id-ID')}</div>
+                <div class="col-4">Potongan:</div><div class="col-8 text-danger">- Rp ${potongan.toLocaleString('id-ID')}</div>
+                <div class="col-4 fw-bold text-dark pt-1 border-top">Total Akhir:</div>
+                <div class="col-8 fw-bold text-success pt-1 border-top fs-6">Rp ${total.toLocaleString('id-ID')}</div>
+            </div>
+        `;
+        area.style.display = 'block';
+    }
+
+    window.onload = renderAplikasi;
+</script>
+</body>
+</html>
